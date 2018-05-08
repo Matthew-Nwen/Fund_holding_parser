@@ -48,7 +48,7 @@ def find_13f_archive(CIK):
 def find_13f_actual(archive_url):
     response = requests.get(archive_url)
     soup = BeautifulSoup(response.content, 'html.parser')
-    for link in gen_relevant_links(soup, '.xml'):
+    for link in gen_relevant_links(soup, '.txt'):
         print(link)
 
 archive_gen = find_13f_archive(test_CIK)

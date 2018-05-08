@@ -16,9 +16,18 @@ def verify_CIK(CIK):
         return True
     return False
 
+def gen_relevant_links(soup, context):
+    for link in soup.find_all('a'):
+        link = str(link)
+        if context in str.lower(link):
+            # I think it would be better to use a regex here instead
+            #   print(link)
+            link = re.search(r'"(.*?)"', link).group()
+            link = link.replace('"', '')
+            yield link
 
-def find_13f(CIK):
-    if !verify_CIK(CIK):
+def find_13f_archive(CIK):
+    if not verify_CIK(CIK):
         print('Error: invalid input.')
         return
 
@@ -33,11 +42,19 @@ def find_13f(CIK):
         print('No match found!')
         return
 
-    links = soup.find_all('a')
-    for link in links:
-        link = str(link)
-        if 'document' in str.lower(link):
-            archive_link = link.split(' ')[1]
-            archive_link = archive_link.replace('href=', '')
-            archive_link = archive_link.replace('"', '')
-            yield (archive_url + archive_link)
+    for archive_link in gen_relevant_links(soup, 'document'):
+        yield archive_url + archive_link
+
+def find_13f_actual(archive_url):
+    response = requests.get(archive_url)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    for link in gen_relevant_links(soup, '.xml'):
+        print(link)
+
+archive_gen = find_13f_archive(test_CIK)
+find_13f_actual(next(archive_gen))
+
+"""
+for link in archive_gen:
+    find_13f_actual(link)
+"""

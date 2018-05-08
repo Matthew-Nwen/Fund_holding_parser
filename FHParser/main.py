@@ -33,7 +33,6 @@ def find_13f_archive(CIK):
 
     params = {'CIK': CIK, 'type': '13F'}
     response = requests.get(browse_url, params=params)
-
     soup = BeautifulSoup(response.content, 'html.parser')
 
     # This part feels a little hard coded.
@@ -46,13 +45,14 @@ def find_13f_archive(CIK):
         yield archive_url + archive_link
 
 def find_13f_actual(archive_url):
-    response = requests.get(archive_url)
+    actual_url = archive_url.replace('-index.htm', '.txt')
+    response = requests.get(actual_url)
     soup = BeautifulSoup(response.content, 'html.parser')
-    for link in gen_relevant_links(soup, '.txt'):
-        print(link)
+    links = soup.find_all('xml')
+    print(link)
 
 archive_gen = find_13f_archive(test_CIK)
-find_13f_actual(next(archive_gen))
+actual_link = find_13f_actual(next(archive_gen))
 
 """
 for link in archive_gen:

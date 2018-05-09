@@ -2,7 +2,6 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import xml.etree.ElementTree as ET
-import sys
 
 browse_url = 'https://www.sec.gov/cgi-bin/browse-edgar'
 archive_url = 'https://www.sec.gov'
@@ -30,15 +29,13 @@ def find_13f_actual(archive_url):
     response = requests.get(actual_url)
     soup = BeautifulSoup(response.content, 'html.parser')
 
-    # I dislike hard coding this
+    # I dislike hard coding this. The first finding is just header info
     xml = soup.find_all('xml')[1]
-    xml = str(xml)
-    xml = xml.replace('<xml>', '')
-    xml = xml.replace('</xml>', '')
-    xml = xml.strip()
+    xml = format_xml(xml)
     root = ET.fromstring(xml)
     return root
 
+# Checks if the input is either 10 digits or 5 char string ending in X
 def verify_CIK(CIK):
     digits = re.compile(r'\b(\d){10}\b')
     if digits.match(CIK):
@@ -48,6 +45,7 @@ def verify_CIK(CIK):
         return True
     return False
 
+# Generates all links that include some context string
 def gen_relevant_links(soup, context):
     for link in soup.find_all('a'):
         link = str(link)
@@ -56,3 +54,10 @@ def gen_relevant_links(soup, context):
             link = re.search(r'"(.*?)"', link).group()
             link = link.replace('"', '')
             yield link
+
+def format_xml(xml):
+    xml = str(xml)
+    xml = xml.replace('<xml>', '')
+    xml = xml.replace('</xml>', '')
+    xml = xml.strip()
+    return xml

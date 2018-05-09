@@ -40,7 +40,9 @@ def test_valid_CIK_with_results():
     except StopIteration:
         result = None
     finally:
-        assert None != result
+        assert 'None' != result
+        url = 'https://www.sec.gov/Archives/edgar/data/1166559/000110465918009713/0001104659-18-009713-index.htm'
+        assert url == result
 
 def test_valid_CIK_no_results():
     valid_CIK = 'NGINX'

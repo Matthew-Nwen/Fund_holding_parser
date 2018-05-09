@@ -56,7 +56,3 @@ def gen_relevant_links(soup, context):
             link = re.search(r'"(.*?)"', link).group()
             link = link.replace('"', '')
             yield link
-"""
-for link in archive_gen:
-    find_13f_actual(link)
-"""

@@ -1,4 +1,4 @@
-import FHParser.main as myCode
+import FHParser.parser as myCode
 
 def test_valid_CIK():
     #CIK need 10 digits
@@ -31,3 +31,29 @@ def test_invalid_Ticker():
     #Ticker with more than 5 letters
     invalid_ticker = 'abcdeX'
     assert False == myCode.verify_CIK(invalid_ticker)
+
+def test_valid_CIK_with_results():
+    valid_CIK = '0001166559'
+    result = None
+    try:
+        result = next(myCode.find_13f_archive(valid_CIK))
+    except StopIteration:
+        result = None
+    finally:
+        assert None != result
+
+def test_valid_CIK_no_results():
+    valid_CIK = 'NGINX'
+    result = None
+    try:
+        result = next(myCode.find_13f_archive(valid_CIK))
+    except StopIteration:
+        result = None
+    finally:
+        assert None == result
+
+# Since actual can't be called without a match to a 13F, I think I'm safe.
+def test_valid_CIK_archive():
+    valid_CIK = '0001166559'
+    archive = next(myCode.find_13f_archive(valid_CIK))
+    assert None != myCode.find_13f_actual(archive)

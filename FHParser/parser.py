@@ -28,12 +28,24 @@ def find_13f_actual(archive_url):
     actual_url = archive_url.replace('-index.htm', '.txt')
     response = requests.get(actual_url)
     soup = BeautifulSoup(response.content, 'html.parser')
+    for table in soup.find_all('infotable'):
+        yield gen_line(table)
 
-    # I dislike hard coding this. The first finding is just header info
-    xml = soup.find_all('xml')[1]
-    xml = format_xml(xml)
-    root = ET.fromstring(xml)
-    return root
+def gen_line(table):
+    # print(table.prettify())
+    # print(table.find('nameofissuer').text)
+    result = {}
+    result['name'] = table.find('nameofissuer').text
+    result['title'] = table.find('titleofclass').text
+    result['cusip'] = table.find('cusip').text
+    result['value'] = table.find('value').text
+    result['sshprnamt'] = table.find('sshprnamt').text
+    result['sshprnamttype'] = table.find('sshprnamttype').text
+    result['discretion'] = table.find('investmentdiscretion').text
+    result['sole'] = table.find('sole').text
+    result['shared'] = table.find('shared').text
+    result['none'] = table.find('none').text
+    return result
 
 # Checks if the input is either 10 digits or 5 char string ending in X
 def verify_CIK(CIK):

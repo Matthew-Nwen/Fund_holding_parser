@@ -1,42 +1,32 @@
 # I'm going to use the info table html as a guide
+import csv
 
-# Name of issuer
-# Title of class
-# CUSIP
-# Value(x$1000)
-# Shrs or PRN AMT / Type
-# SH/PRN
-# Investment Discretion
-# Other manager
-# Voting authority
-    # Sole
-    # Shared
-    # None
+def pretty_print(data):
+    with open('output.csv', 'w', newline='') as file:
+        writer = csv.writer(file, delimiter='\t')
+        writer.writerow(gen_header())
+        writer.writerow(data.values())
 
-def pretty_print(root):
-    print_header()
-    for infotable in root:
-        line = []
-        for text in infotable:
-            toInsert = text.text
-            if toInsert == '\n':
-                for subtext in text:
-                    line.append(subtext.text)
-                continue
-            line.append(toInsert)
-        print('\t'.join(line))
+# What to do on an empty field? Seems like this ignores gaps...
+def add_text(text_element, line):
+    toInsert = text_element.text
+    if toInsert != '\n':
+        line.append(toInsert)
+        return
+    for subtext in text_element:
+        add_text(subtext, line)
 
-
-def print_header():
-    header = ''
-    for i in range(8):
-        header += 'Column ' + str(i + 1) + '\t'
-    header += '\n'
-    header += '\t\t\t' * 2
-    header += 'Value\t\tSHRS OR SH/\tInvestment\tOther\t\tVoting authority'
-
-    header += '\n'
-    header += 'Name Of Issuer\tTitle Of Class\tCUSIP\t\t'
-    header += ' (X$1000)\tPRN AMT\tPRN\tDiscretion\t'
-    header += 'Manager\t\tSole\tShared\tNone'
-    print(header)
+def gen_header():
+    header = []
+    header.append('Name of Issuer')
+    header.append('Title of Class')
+    header.append('CUSIP')
+    header.append('Value(x$1000)')
+    header.append('SH/PRN Amount')
+    header.append('SH/PRN')
+    header.append('Investment Discretion')
+#    header.append('Other Manager')
+    header.append('Sole Voting Authority')
+    header.append('Shared Voting Authority')
+    header.append('None Voting Authority')
+    return header

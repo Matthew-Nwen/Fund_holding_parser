@@ -1,13 +1,13 @@
 # I'm going to use the info table html as a guide
 import csv
 
-def ready_printing():
-    with open('output.csv', 'w', newline='') as file:
+def ready_printing(curr):
+    with open('output' + str(curr) + '.csv', 'w', newline='') as file:
         writer = csv.writer(file, dialect='excel-tab')
         writer.writerow(gen_header())
 
-def print_row(data):
-    with open('output.csv', 'a', newline='') as file:
+def print_row(curr, data):
+    with open('output' + str(curr) + '.csv', 'a', newline='') as file:
         writer = csv.writer(file, dialect='excel-tab')
         writer.writerow(data.values())
 

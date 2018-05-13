@@ -7,6 +7,20 @@ import enum
 browse_url = 'https://www.sec.gov/cgi-bin/browse-edgar'
 archive_url = 'https://www.sec.gov'
 
+class infotable_values(enum.Enum):
+    nameofissuer = 1
+    titleofclass = 2
+    cusip = 3
+    value = 4
+    sshprnamt = 5
+    sshprnamttype = 6
+    putCall = 7
+    investmentdiscretion = 8
+    othermanager = 9
+    sole = 10
+    shared = 11
+    none = 12
+
 def find_13f_archive(CIK):
     if not verify_CIK(CIK):
         print('Error: invalid input.')
@@ -23,7 +37,7 @@ def find_13f_archive(CIK):
         return
 
     for archive_link in gen_relevant_links(soup, 'document'):
-        return archive_url + archive_link
+        yield archive_url + archive_link
 
 def find_13f_actual(archive_url):
     actual_url = archive_url.replace('-index.htm', '.txt')
@@ -32,24 +46,8 @@ def find_13f_actual(archive_url):
     for table in soup.find_all('infotable'):
         yield gen_line(table)
 
-class infotable_values(enum.Enum):
-    nameofissuer = 1
-    titleofclass = 2
-    cusip = 3
-    value = 4
-    sshprnamt = 5
-    sshprnamttype = 6
-    putCall = 7
-    investmentdiscretion = 8
-    othermanager = 9
-    sole = 10
-    shared = 11
-    none = 12
-
 def gen_line(table):
-    #TODO: what if soup fails to find a value?
     result = {}
-
     for search_query in infotable_values:
         try:
             result[search_query.name] = table.find(search_query.name).text

@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import xml.etree.ElementTree as ET
+import enum
 
 browse_url = 'https://www.sec.gov/cgi-bin/browse-edgar'
 archive_url = 'https://www.sec.gov'
@@ -22,7 +23,7 @@ def find_13f_archive(CIK):
         return
 
     for archive_link in gen_relevant_links(soup, 'document'):
-        yield archive_url + archive_link
+        return archive_url + archive_link
 
 def find_13f_actual(archive_url):
     actual_url = archive_url.replace('-index.htm', '.txt')
@@ -31,20 +32,29 @@ def find_13f_actual(archive_url):
     for table in soup.find_all('infotable'):
         yield gen_line(table)
 
+class infotable_values(enum.Enum):
+    nameofissuer = 1
+    titleofclass = 2
+    cusip = 3
+    value = 4
+    sshprnamt = 5
+    sshprnamttype = 6
+    putCall = 7
+    investmentdiscretion = 8
+    othermanager = 9
+    sole = 10
+    shared = 11
+    none = 12
+
 def gen_line(table):
-    # print(table.prettify())
-    # print(table.find('nameofissuer').text)
+    #TODO: what if soup fails to find a value?
     result = {}
-    result['name'] = table.find('nameofissuer').text
-    result['title'] = table.find('titleofclass').text
-    result['cusip'] = table.find('cusip').text
-    result['value'] = table.find('value').text
-    result['sshprnamt'] = table.find('sshprnamt').text
-    result['sshprnamttype'] = table.find('sshprnamttype').text
-    result['discretion'] = table.find('investmentdiscretion').text
-    result['sole'] = table.find('sole').text
-    result['shared'] = table.find('shared').text
-    result['none'] = table.find('none').text
+
+    for search_query in infotable_values:
+        try:
+            result[search_query.name] = table.find(search_query.name).text
+        except:
+            result[search_query.name] = ''
     return result
 
 # Checks if the input is either 10 digits or 5 char string ending in X

@@ -4,9 +4,11 @@ import re
 import xml.etree.ElementTree as ET
 import enum
 
+# Links to EDGAR.
 browse_url = 'https://www.sec.gov/cgi-bin/browse-edgar'
 archive_url = 'https://www.sec.gov'
 
+# Enum for which values to scrape for
 class infotable_values(enum.Enum):
     nameofissuer = 1
     titleofclass = 2
@@ -21,6 +23,7 @@ class infotable_values(enum.Enum):
     shared = 11
     none = 12
 
+# Looks for the archive link to the submitted 13F form.
 def find_13f_archive(CIK):
     if not verify_CIK(CIK):
         print('Error: invalid input.')
@@ -39,35 +42,50 @@ def find_13f_archive(CIK):
     for archive_link in gen_relevant_links(soup, 'document'):
         yield archive_url + archive_link
 
+# With the link to the archive, parse the archived 13F text
 def find_13f_actual(archive_url):
     actual_url = archive_url.replace('-index.htm', '.txt')
     response = requests.get(actual_url)
     soup = BeautifulSoup(response.content, 'html.parser')
 
+    # With an infotable, the 13F is in a modern XML format.
+    # Otherwise it's in an older ascii format!
     table = soup.find_all('infotable')
     if table:
         for table in soup.find_all('infotable'):
             yield gen_xml_line(table)
     elif not table:
-        # Who thought text justifying by tags was a good idea....
-        data = response.text.split('<Caption>')[1].split('\n')[6:]
+        for line in handle_ascii_text(response.text):
+            yield line
 
-        justification = data[0]
-        justification = [m.start() for m in re.finditer('<', justification)]
-        for line in data[1:]:
-            if line.startswith('</'):
-                break
-            yield gen_ascii_line(line, justification)
-
+# Sends parsed data for a line from a single XML infotable on the modern 13F
 def gen_xml_line(table):
-    result = {}
+    line = {}
     for search_query in infotable_values:
         try:
-            result[search_query.name] = table.find(search_query.name).text
+            line[search_query.name] = table.find(search_query.name).text
         except:
-            result[search_query.name] = ''
-    return result
+            line[search_query.name] = ''
+            return line
 
+# Processes ascii text for parsing and sending.
+# Because the table is formatted as being left justfied to the start of a tag,
+# I have to find the corrrect justification before parsing the data.
+def handle_ascii_text(text):
+    # Who thought text justifying by tags was a good idea....
+    data = text.split('<Caption>')[1].split('\n') # TODO: is this split safe?
+    justification = None
+    for line in data:
+        if justification:
+            if line.startswith('</Table>'):
+                break
+            yield gen_ascii_line(line, justification)
+        if not line.startswith('<'):
+            continue
+        justification = line
+        justification = [i.start() for i in re.finditer('<', justification)]
+
+# Sends parsed data for a line from a single ASCII line on the older 13F.
 def gen_ascii_line(line, justification):
     result = {}
     for search_query in infotable_values:
@@ -98,10 +116,3 @@ def gen_relevant_links(soup, context):
             link = re.search(r'"(.*?)"', link).group()
             link = link.replace('"', '')
             yield link
-
-def format_xml(xml):
-    xml = str(xml)
-    xml = xml.replace('<xml>', '')
-    xml = xml.replace('</xml>', '')
-    xml = xml.strip()
-    return xml

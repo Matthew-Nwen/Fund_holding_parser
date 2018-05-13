@@ -22,4 +22,14 @@ Parsing the XML was pretty easy by finding the infotable with bs4, but formattin
 the data seems like it'll be a little tricky. I'm thinking that instead of using
 tabs, I should left justify by a constant amount.
 
-Additionally, I should probably write out to a file.
+Additionally, I should probably write out to a csv file.
+
+Heard back about the requirements of the scraper--of course I was supposed to
+print out to a CSV file--I'll just blame that lapse on graduation coming up.
+Luckily that made my output formatting worries pretty easy to calm.
+
+Since I'm confident in my parse of 1.3 XMLs, I'm looking into older versions
+as according to the published EDGAR specs. It looks like older XMLs are mostly
+the same--just a sharesType as an attribute? Needs looking into.
+
+Otherwise, pre-XML is done in ASCII tables. This might be annoying to parse.

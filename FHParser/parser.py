@@ -43,14 +43,38 @@ def find_13f_actual(archive_url):
     actual_url = archive_url.replace('-index.htm', '.txt')
     response = requests.get(actual_url)
     soup = BeautifulSoup(response.content, 'html.parser')
-    for table in soup.find_all('infotable'):
-        yield gen_line(table)
 
-def gen_line(table):
+    table = soup.find_all('infotable')
+    if table:
+        for table in soup.find_all('infotable'):
+            yield gen_xml_line(table)
+    elif not table:
+        # Who thought text justifying by tags was a good idea....
+        data = response.text.split('<Caption>')[1].split('\n')[6:]
+
+        justification = data[0]
+        justification = [m.start() for m in re.finditer('<', justification)]
+        for line in data[1:]:
+            if line.startswith('</'):
+                break
+            yield gen_ascii_line(line, justification)
+
+def gen_xml_line(table):
     result = {}
     for search_query in infotable_values:
         try:
             result[search_query.name] = table.find(search_query.name).text
+        except:
+            result[search_query.name] = ''
+    return result
+
+def gen_ascii_line(line, justification):
+    result = {}
+    for search_query in infotable_values:
+        curr = search_query.value
+        try:
+            text = line[justification[curr-1]:justification[curr]].strip()
+            result[search_query.name] = text
         except:
             result[search_query.name] = ''
     return result

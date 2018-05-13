@@ -2,12 +2,12 @@
 import csv
 
 def ready_printing(curr):
-    with open('output' + str(curr) + '.csv', 'w', newline='') as file:
+    with open('output' + str(curr or '') + '.csv', 'w', newline='') as file:
         writer = csv.writer(file, dialect='excel-tab')
         writer.writerow(gen_header())
 
 def print_row(curr, data):
-    with open('output' + str(curr) + '.csv', 'a', newline='') as file:
+    with open('output' + str(curr or '') + '.csv', 'a', newline='') as file:
         writer = csv.writer(file, dialect='excel-tab')
         writer.writerow(data.values())
 
